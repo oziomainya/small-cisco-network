@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Small Cisco Network: Full Initial Configuration</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23050505'/><text x='50' y='68' font-family='monospace' font-size='48' font-weight='bold' fill='%2300ff41' text-anchor='middle'>OZI</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+<script>
+
+  /*
+  ==============================================================
+  YOUR PROJECT DETAILS -- EDIT THIS SECTION ONLY
+  ==============================================================
+  Everything you need to fill in is below.
+  The rest of the file builds the page automatically.
+  DO NOT edit anything below the closing comment block.
+  ==============================================================
+  */
+
+  const PROJECT = {
+
+    /*
+    -- BASICS ------------------------------------------------
+    Replace [Your Full Name] with your real name.
+    Replace [Month, Year] with when you completed this project.
+    Leave status as "live" since this project is complete.
+    */
+
+    title:      "Small Cisco Network: Full Initial Configuration",
+    category:   "networking",
+    status:     "live",
+    author:     "Ozioma Inya",       // REPLACE with your name
+    date:       "August, 2025",          // REPLACE e.g. "May, 2025"
+
+
+    /*
+    -- OVERVIEW ----------------------------------------------
+    The one-paragraph summary shown at the top of the page.
+    You can leave it as-is or rewrite it in your own words.
+    */
+
+    overview:   "A from-scratch initial configuration of a Cisco router and switch built in Cisco Packet Tracer. Covers device hardening, secure access configuration, IP addressing, switch management interface setup, and end-to-end connectivity verification -- completed as part of the Cisco Networking Academy Junior Cybersecurity Analyst career path.",
+
+
+    /*
+    -- OBJECTIVES --------------------------------------------
+    The goals of the project.
+    Each item must be inside quotes and separated by a comma.
+    */
+
+    objectives: [
+      "Build a small network topology in Cisco Packet Tracer with one router, one switch, and two end devices",
+      "Perform initial configuration of a Cisco router from factory defaults -- hostname, banner, and interface setup",
+      "Perform initial configuration of a Cisco switch -- hostname, banner, and management IP",
+      "Secure both devices with encrypted enable passwords, console line security, and VTY line security",
+      "Configure the default gateway on the switch for remote management",
+      "Verify end-to-end connectivity between all devices using ping",
+      "Document all configurations, verification outputs, and lessons learned",
+    ],
+
+
+    /*
+    -- TOOLS ------------------------------------------------
+    Leave as-is for this project.
+    */
+
+    tools: [
+      { name: "Cisco Packet Tracer",  purpose: "Network simulation and device configuration" },
+      { name: "Cisco IOS CLI",        purpose: "Router and switch configuration" },
+      { name: "ICMP Ping",            purpose: "End-to-end connectivity verification" },
+    ],
+
+
+    /*
+    -- SKILL TAGS -------------------------------------------
+    These appear as green tags on the page.
+    */
+
+    skills: [
+      "Initial Device Configuration", "Cisco IOS CLI", "Device Hardening",
+      "Console Line Security", "VTY Line Security", "Enable Secret",
+      "IPv4 Addressing", "Switch Management IP", "Default Gateway",
+      "MOTD Banner", "Packet Tracer", "Network Troubleshooting",
+    ],
+
+
+    /*
+    -- STEPS ------------------------------------------------
+    Each step has a title, description, and optional code block.
+    Set code to "" to hide the code block for that step.
+    Rewrite the desc fields in your own words if you prefer.
+    */
+
+    steps: [
+      {
+        title: "Build the Topology",
+        desc:  "Opened Cisco Packet Tracer and placed one 1941 router (R1), one 2960 switch (SW1), and two generic PCs (PC1, PC2). Connected PC1 and PC2 to SW1 using straight-through cables, and SW1 to R1 G0/0. This is a single-LAN topology representing a small office network where all devices share the 192.168.1.0/24 network.",
+        code:  `Topology Summary:
+  Network: 192.168.1.0/24
+
+  PC1  (192.168.1.10) --> SW1 Fa0/1
+  PC2  (192.168.1.20) --> SW1 Fa0/2
+  SW1  G0/1           --> R1  G0/0
+
+  R1   G0/0: 192.168.1.1  (default gateway for all hosts)
+  SW1  VLAN1: 192.168.1.2  (management IP for remote access)`,
+      },
+      {
+        title: "Configure Initial Router Settings",
+        desc:  "Accessed R1 via the console. Set the hostname, configured a MOTD (Message of the Day) login banner to warn unauthorised users, assigned an IP address to G0/0, and brought the interface up. A MOTD banner is important in real environments as it establishes legal notice before login.",
+        code:  `Router> enable
+Router# configure terminal
+
+Router(config)# hostname R1
+R1(config)# banner motd # Authorised Access Only. Disconnect immediately if not authorised. #
+
+R1(config)# interface GigabitEthernet0/0
+R1(config-if)# ip address 192.168.1.1 255.255.255.0
+R1(config-if)# description Link to SW1 - LAN Interface
+R1(config-if)# no shutdown
+R1(config-if)# exit`,
+      },
+      {
+        title: "Secure the Router",
+        desc:  "Configured three layers of access security on R1. The enable secret encrypts the privileged exec password using MD5. Console line security requires a password to access the device physically. VTY line security secures remote Telnet/SSH access. The service password-encryption command encrypts all plaintext passwords stored in the running config.",
+        code:  `R1(config)# enable secret Cisco123!
+
+R1(config)# line console 0
+R1(config-line)# password Console123!
+R1(config-line)# login
+R1(config-line)# exit
+
+R1(config)# line vty 0 15
+R1(config-line)# password Vty123!
+R1(config-line)# login
+R1(config-line)# exit
+
+R1(config)# service password-encryption
+R1(config)# end
+R1# copy running-config startup-config 
+Destination filename [startup-config]? 
+Building configuration...
+[OK]`,
+      },
+      {
+        title: "Configure Initial Switch Settings",
+        desc:  "Accessed SW1 via the console and applied the same baseline hardening as the router -- hostname, MOTD banner, and password security. Then configured a management IP address on VLAN 1, the default management VLAN. This allows the switch to be reached remotely for administration.",
+        code:  `Switch> enable
+Switch# configure terminal
+
+Switch(config)# hostname SW1
+SW1(config)# banner motd # Authorised Access Only. Disconnect immediately if not authorised. #
+
+SW1(config)# enable secret Cisco123!
+
+SW1(config)# line console 0
+SW1(config-line)# password Console123!
+SW1(config-line)# login
+SW1(config-line)# exit
+
+SW1(config)# line vty 0 15
+SW1(config-line)# password Vty123!
+SW1(config-line)# login
+SW1(config-line)# exit
+
+SW1(config)# service password-encryption`,
+      },
+      {
+        title: "Set Switch Management IP and Default Gateway",
+        desc:  "Assigned a static IP address to SW1's VLAN 1 interface and brought it up. Then configured the default gateway on the switch, the IP address the switch itself uses to send traffic outside its local network. Without this, the switch cannot be managed from a different subnet.",
+        code:  `SW1(config)# interface vlan 1
+SW1(config-if)# ip address 192.168.1.2 255.255.255.0
+SW1(config-if)# no shutdown
+SW1(config-if)# exit
+
+SW1(config)# ip default-gateway 192.168.1.1
+SW1(config)# end
+SW1# copy running-config startup-config 
+Destination filename [startup-config]? 
+Building configuration...
+[OK]`,
+      },
+      {
+        title: "Assign IP Addresses to PCs",
+        desc:  "Configured PC1 and PC2 with static IP addresses, subnet masks, and the correct default gateway pointing to R1. Both PCs are on the same LAN, but they need the gateway set so that the router can be reached and so any future inter-network traffic routes correctly.",
+        code:  `PC1  IP: 192.168.1.10   Mask: 255.255.255.0   GW: 192.168.1.1
+PC2  IP: 192.168.1.20   Mask: 255.255.255.0   GW: 192.168.1.1`,
+      },
+      {
+        title: "Verify End-to-End Connectivity",
+        desc:  "Ran ping tests from PC1 to all other devices on the network -- PC2, the router interface, and the switch management IP. All pings succeeded. Also verified the running configuration on both devices using show commands to confirm passwords were encrypted and interfaces were up.",
+        code:  `C:\\> ping 192.168.1.20   -- PC1 to PC2          SUCCESS
+C:\\> ping 192.168.1.1    -- PC1 to R1 G0/0     SUCCESS
+C:\\> ping 192.168.1.2    -- PC1 to SW1 VLAN1    SUCCESS
+
+R1# show ip interface brief
+GigabitEthernet0/0  192.168.1.1  YES  manual  up  up
+
+R1# show running-config | include secret
+enable secret 5 $1$mERr$9cTjUIlmO7RHSbPQZObB./
+
+SW1# show running-config | include secret
+enable secret 5 $1$mERr$9cTjUIlmO7RHSbPQZObB./`,
+      },
+    ],
+
+
+    /*
+    -- RESULTS ----------------------------------------------
+    What happened when you tested?
+    Types: "success" (green) | "warning" (amber) | "fix" (cyan) | "fail" (red)
+    */
+
+    results: [
+      { type: "success", text: "All ping tests from PC1 to PC2, R1, and SW1 VLAN 1 succeeded after full configuration." },
+      { type: "success", text: "Running config confirmed all passwords were encrypted -- no plaintext passwords visible." },
+      { type: "success", text: "MOTD banner displayed correctly on console login for both R1 and SW1." },
+      { type: "success", text: "show ip interface brief confirmed R1 Fa0/0 and SW1 VLAN 1 both in up/up state." },
+      { type: "warning", text: "First ping from PC1 to SW1 VLAN 1 timed out -- SW1 VLAN 1 interface had not been brought up with no shutdown yet." },
+      { type: "fix",     text: "Added no shutdown to the VLAN 1 interface on SW1 and re-ran the ping -- succeeded on all four replies." },
+      { type: "warning", text: "Forgot to set ip default-gateway on SW1 initially -- switch could not be pinged from a different subnet in extended testing." },
+      { type: "fix",     text: "Added ip default-gateway 192.168.1.1 under global config on SW1 and confirmed with show running-config." },
+    ],
+
+
+    /*
+    -- LESSONS LEARNED --------------------------------------
+    Rewrite these in your own words -- this section is what
+    makes the write-up feel personal and genuine.
+    */
+
+    lessons: [
+      {
+        title: "Device hardening is the first task, not an afterthought",
+        text:  "On a real network, an unconfigured device is an open door. Setting the enable secret, securing console and VTY lines, encrypting passwords, and adding a MOTD banner are not optional. They are the baseline before anything else is configured. Doing this in the lab built the habit.",
+      },
+      {
+        title: "The switch needs a default gateway too",
+        text:  "I initially thought the default gateway only applied to end hosts. The switch itself also needs one. Without it, the switch can only be managed from within its own subnet. This became clear when I tried to ping the switch from a different network segment during extended testing.",
+      },
+      {
+        title: "no shutdown is required for VLAN interfaces, not just router interfaces",
+        text:  "Just like physical router interfaces, VLAN interfaces on a switch are administratively down by default. Forgetting no shutdown on VLAN 1 meant the management IP was configured but completely unreachable.",
+      },
+      {
+        title: "show commands are part of the configuration process",
+        text:  "Using show running-config, show ip interface brief, after each step made it possible to catch mistakes immediately rather than only at the end. Verification is meant to happen throughout the configuration process.",
+      },
+    ],
+
+
+    /*
+    -- LINKS -----------------------------------------------
+    Fill these in once your project is live on GitHub.
+    Leave as "" to hide the button until you are ready.
+
+    githubLink     -- your GitHub repo URL
+    portfolioLink  -- your main portfolio URL
+    authorLinkedIn -- your LinkedIn profile URL
+    */
+
+    githubLink:     "",   // REPLACE with GitHub repo URL when ready
+    portfolioLink:  "https://oziomainya.github.io",   // REPLACE with portfolio URL when ready
+    authorLinkedIn: "https://linkedin.com/in/ozioma-inya-a46327304",   // REPLACE with LinkedIn URL when ready
+
+  };
+
+  /*
+  ==============================================================
+  DO NOT EDIT BELOW THIS COMMENT BLOCK
+  The page is built automatically from your data above.
+  ==============================================================
+  */
+
+</script>
+
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050505;--bg-2:#0c0c0c;--bg-card:#0f0f0f;--bg-code:#080808;
+  --green:#00ff41;--green-d:#00b32d;--green-dk:#001f08;
+  --cyan:#00e5ff;--cyan-d:#00a8c0;
+  --amber:#ffd600;--red:#ff4444;--text:#ccffcc;
+  --text-2:#5a8f5a;--text-m:#2a4a2a;
+  --border:rgba(0,255,65,.09);--border-s:rgba(0,255,65,.22);
+  --font:'JetBrains Mono','Courier New',monospace
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,65,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,.02) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.1) 2px,rgba(0,0,0,.1) 4px);pointer-events:none;z-index:999}
+nav{position:fixed;top:0;width:100%;z-index:100;background:rgba(5,5,5,.97);border-bottom:1px solid var(--border);padding:0 2.5rem;height:56px;display:flex;align-items:center;justify-content:space-between}
+.nav-back{color:var(--text-2);text-decoration:none;font-size:11px;letter-spacing:.1em;transition:color .2s}
+.nav-back::before{content:'<- ';color:var(--text-m)}
+.nav-back:hover{color:var(--green)}
+.nav-id{color:var(--text-m);font-size:11px;letter-spacing:.1em}
+main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:6rem 2.5rem 5rem}
+.proj-header{margin-bottom:4rem;padding-bottom:2.5rem;border-bottom:1px solid var(--border)}
+.proj-meta{display:flex;align-items:center;gap:.65rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.meta-cat{font-size:9px;letter-spacing:.15em;padding:3px 10px;border-radius:2px;background:var(--green-dk);color:var(--green);border:1px solid rgba(0,255,65,.2)}
+.meta-status{font-size:9px;letter-spacing:.12em;display:inline-flex;align-items:center;gap:5px}
+.meta-status::before{content:'';width:6px;height:6px;border-radius:50%;animation:pulse 2s ease-in-out infinite}
+.meta-status.live{color:var(--green)}.meta-status.live::before{background:var(--green)}
+.meta-status.wip{color:var(--cyan)}.meta-status.wip::before{background:var(--cyan)}
+.meta-status.soon{color:var(--amber)}.meta-status.soon::before{background:var(--amber)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.meta-source{font-size:9px;letter-spacing:.08em;padding:3px 10px;border-radius:2px;background:rgba(0,229,255,.05);color:var(--cyan-d);border:1px solid rgba(0,229,255,.15)}
+.meta-date{font-size:10px;color:var(--text-m)}
+.proj-title{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;color:var(--green);letter-spacing:-.02em;margin-bottom:1rem;line-height:1.15}
+.proj-overview{font-size:13px;color:var(--text-2);line-height:2;max-width:640px}
+.proj-actions{display:flex;gap:.75rem;margin-top:2rem;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.2rem;font-family:var(--font);font-size:11px;letter-spacing:.1em;cursor:pointer;transition:all .18s;text-decoration:none;border-radius:2px}
+.btn-p{background:var(--green-dk);color:var(--green);border:1px solid rgba(0,255,65,.3)}
+.btn-p:hover{background:var(--green);color:#030d06}
+.btn-s{background:transparent;color:var(--text-2);border:1px solid var(--border-s)}
+.btn-s:hover{color:var(--cyan);border-color:rgba(0,229,255,.3)}
+.section{margin-bottom:3.5rem}
+.sh{display:flex;align-items:center;gap:1rem;margin-bottom:1.75rem;color:var(--text-2);font-size:12px;letter-spacing:.1em}
+.sh::before{content:'$';color:var(--green);font-size:14px;font-weight:700}
+.sh::after{content:'';flex:1;height:1px;background:var(--border)}
+.obj-list{display:flex;flex-direction:column;gap:.6rem}
+.obj-item{display:flex;align-items:flex-start;gap:.75rem;background:var(--bg-card);border:1px solid var(--border);border-radius:3px;padding:.85rem 1.1rem;font-size:12px;color:var(--text-2);transition:border-color .2s}
+.obj-item:hover{border-color:var(--border-s)}
+.obj-num{color:var(--text-m);flex-shrink:0;min-width:22px}
+.tools-table{width:100%;border-collapse:collapse;font-size:12px}
+.tools-table th{text-align:left;padding:.6rem 1rem;color:var(--text-m);font-weight:400;font-size:10px;letter-spacing:.1em;border-bottom:1px solid var(--border)}
+.tools-table td{padding:.7rem 1rem;border-bottom:1px solid var(--border);color:var(--text-2)}
+.tools-table tr:last-child td{border-bottom:none}
+.tools-table tr:hover td{color:var(--text)}
+.tool-name{color:var(--green);font-weight:500}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:.4rem}
+.tag{display:inline-block;padding:3px 10px;font-size:10px;border-radius:2px;letter-spacing:.04em;background:rgba(0,255,65,.06);color:var(--green-d);border:1px solid rgba(0,255,65,.14)}
+.topo-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1.5rem;overflow-x:auto}
+.topo-diagram{font-size:11px;color:var(--green-d);line-height:2.1;white-space:pre;font-family:var(--font);margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.topo-table{width:100%;border-collapse:collapse;font-size:11px}
+.topo-table th{text-align:left;padding:.5rem .85rem;color:var(--text-m);font-weight:400;font-size:10px;letter-spacing:.1em;border-bottom:1px solid var(--border)}
+.topo-table td{padding:.6rem .85rem;border-bottom:1px solid var(--border);color:var(--text-2)}
+.topo-table tr:last-child td{border-bottom:none}
+.topo-hl{color:var(--green) !important;font-weight:500}
+.topo-ip{color:var(--cyan-d) !important}
+.steps-list{display:flex;flex-direction:column;gap:1.25rem}
+.step{background:var(--bg-card);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:border-color .2s}
+.step:hover{border-color:var(--border-s)}
+.step-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+.step-n{font-size:9px;color:var(--text-m);letter-spacing:.15em}
+.step-title{font-size:12px;font-weight:700;color:var(--cyan)}
+.step-body{padding:1rem 1.25rem}
+.step-desc{font-size:12px;color:var(--text-2);line-height:1.9;margin-bottom:.75rem}
+.step-code{background:var(--bg-code);border:1px solid rgba(0,255,65,.07);border-radius:3px;padding:1rem 1.25rem;font-size:11px;color:var(--green-d);overflow-x:auto;white-space:pre;line-height:1.8}
+.results-list{display:flex;flex-direction:column;gap:.6rem}
+.result{display:flex;align-items:flex-start;gap:.85rem;padding:.9rem 1.1rem;border-radius:3px;border:1px solid;font-size:12px;line-height:1.8}
+.result.success{background:rgba(0,255,65,.04);border-color:rgba(0,255,65,.12);color:var(--text-2)}
+.result.success .ri{color:var(--green);flex-shrink:0}
+.result.warning{background:rgba(255,214,0,.04);border-color:rgba(255,214,0,.12);color:var(--text-2)}
+.result.warning .ri{color:var(--amber);flex-shrink:0}
+.result.fix{background:rgba(0,229,255,.04);border-color:rgba(0,229,255,.12);color:var(--text-2)}
+.result.fix .ri{color:var(--cyan);flex-shrink:0}
+.result.fail{background:rgba(255,68,68,.04);border-color:rgba(255,68,68,.12);color:var(--text-2)}
+.result.fail .ri{color:var(--red);flex-shrink:0}
+.lessons-list{display:flex;flex-direction:column;gap:1rem}
+.lesson{background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1.25rem;transition:border-color .2s}
+.lesson:hover{border-color:var(--border-s)}
+.lesson-n{font-size:9px;color:var(--text-m);letter-spacing:.15em;margin-bottom:.35rem}
+.lesson-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:.4rem}
+.lesson-text{font-size:12px;color:var(--text-2);line-height:1.9}
+.screenshots{display:flex;flex-direction:column;gap:1.5rem}
+.screenshot-item{display:flex;flex-direction:column;gap:.6rem}
+.screenshot-item img{width:100%;border-radius:4px;border:1px solid rgba(0,255,65,.1);display:block}
+.screenshot-caption{font-size:10px;color:var(--text-m);letter-spacing:.08em;padding-left:.25rem}
+.screenshot-placeholder{background:var(--bg-card);border:1px dashed rgba(0,255,65,.15);border-radius:4px;padding:2.5rem;text-align:center;font-size:11px;color:var(--text-m);letter-spacing:.05em}
+footer{position:relative;z-index:1;text-align:center;padding:2rem;border-top:1px solid var(--border);color:var(--text-m);font-size:10px;letter-spacing:.1em}
+@media(max-width:620px){main{padding:5rem 1.25rem 3rem}nav{padding:0 1.25rem}.proj-title{font-size:1.7rem}.topo-diagram{font-size:9px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a id="nav-back" href="#" class="nav-back">Back to Portfolio</a>
+  <span class="nav-id" id="nav-id"></span>
+</nav>
+
+<main>
+  <header class="proj-header" id="proj-header"></header>
+
+  <div class="section">
+    <div class="sh">cat objectives.txt</div>
+    <div class="obj-list" id="obj-list"></div>
+  </div>
+
+  <div class="section">
+    <div class="sh">cat tools.txt</div>
+    <table class="tools-table">
+      <thead><tr><th>TOOL / TECHNOLOGY</th><th>PURPOSE</th></tr></thead>
+      <tbody id="tools-body"></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="sh">cat skills.txt</div>
+    <div class="tags-wrap" id="tags-wrap"></div>
+  </div>
+
+  <div class="section">
+    <div class="sh">cat topology.txt</div>
+    <div class="topo-wrap">
+      <pre class="topo-diagram">  Network: 192.168.1.0/24
+
+  [PC1: 192.168.1.10] --+
+                         +--> [SW1: VLAN1 192.168.1.2] --> [R1 Fa0/0: 192.168.1.1]
+  [PC2: 192.168.1.20] --+</pre>
+      <table class="topo-table">
+        <thead><tr><th>DEVICE</th><th>INTERFACE</th><th>IP ADDRESS</th><th>SUBNET MASK</th><th>DEFAULT GATEWAY</th></tr></thead>
+        <tbody>
+          <tr><td class="topo-hl">PC1</td><td>NIC</td><td class="topo-ip">192.168.1.10</td><td>255.255.255.0</td><td class="topo-ip">192.168.1.1</td></tr>
+          <tr><td class="topo-hl">PC2</td><td>NIC</td><td class="topo-ip">192.168.1.20</td><td>255.255.255.0</td><td class="topo-ip">192.168.1.1</td></tr>
+          <tr><td class="topo-hl">R1</td><td>G0/0</td><td class="topo-ip">192.168.1.1</td><td>255.255.255.0</td><td>--</td></tr>
+          <tr><td class="topo-hl">SW1</td><td>VLAN 1</td><td class="topo-ip">192.168.1.2</td><td>255.255.255.0</td><td class="topo-ip">192.168.1.1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sh">cat methodology.txt</div>
+    <div class="steps-list" id="steps-list"></div>
+  </div>
+
+  <div class="section">
+    <div class="sh">cat results.txt</div>
+    <div class="results-list" id="results-list"></div>
+  </div>
+
+  <!--
+  ==============================================================
+  SCREENSHOTS SECTION -- HOW TO ADD YOUR IMAGES
+  ==============================================================
+
+  FOLDER STRUCTURE:
+  Create a folder called "images" next to this file:
+
+    small-cisco-network/
+    |-- index.html          (this file, renamed)
+    |-- README.md
+    |-- topology.pkt
+    +-- images/
+        |-- topology.png
+        |-- router-config.png
+        |-- switch-config.png
+        |-- ping-results.png
+        +-- show-commands.png
+
+  RECOMMENDED SCREENSHOTS TO TAKE:
+  - Full topology view in Packet Tracer
+  - Router running-config output
+  - Switch running-config output
+  - Ping test results from PC1
+  - show ip interface brief on R1
+  - show running-config | include secret (passwords encrypted)
+
+  WHEN READY:
+  1. Delete the placeholder div below
+  2. Remove the comment markers around the screenshots block
+  3. Update the src filenames to match your actual files
+  ==============================================================
+  -->
+
+  <div class="section">
+    <div class="sh">ls ./evidence/</div>
+
+    <div class="screenshots">
+
+      <div class="screenshot-item">
+        <img src="topology.png" alt="Network topology">
+        <span class="screenshot-caption">// Fig 1 -- Full network topology in Cisco Packet Tracer</span>
+      </div>
+
+      <div class="screenshot-item">
+        <img src="pings.png" alt="Ping test results">
+        <span class="screenshot-caption">// Fig 4 -- Successful ping from PC1 to all devices</span>
+      </div>
+
+      <div class="screenshot-item">
+        <img src="interface-brief.png" alt="Show ip interface brief">
+        <span class="screenshot-caption">// Fig 5 -- show ip interface brief confirming all interfaces are up</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="sh">cat lessons_learned.txt</div>
+    <div class="lessons-list" id="lessons-list"></div>
+  </div>
+
+</main>
+
+<footer id="footer"></footer>
+
+<script>
+var sl = { soon:'COMING SOON', wip:'IN PROGRESS', live:'LIVE' };
+var ri = { success:'v', warning:'!', fix:'+', fail:'x' };
+
+if(PROJECT.portfolioLink) document.getElementById('nav-back').href = PROJECT.portfolioLink;
+document.getElementById('nav-id').textContent = 'SMALL CISCO NETWORK: FULL INITIAL CONFIGURATION';
+
+var gh  = PROJECT.githubLink    ? '<a href="' + PROJECT.githubLink + '" target="_blank" class="btn btn-p">View on GitHub</a>' : '';
+var pfl = PROJECT.portfolioLink ? '<a href="' + PROJECT.portfolioLink + '" class="btn btn-s">Back to Portfolio</a>' : '';
+document.getElementById('proj-header').innerHTML =
+  '<div class="proj-meta">' +
+    '<span class="meta-cat">NETWORKING</span>' +
+    '<span class="meta-status ' + PROJECT.status + '">' + (sl[PROJECT.status] || PROJECT.status.toUpperCase()) + '</span>' +
+    '<span class="meta-source">CISCO NETWORKING DEVICES AND INITIAL CONFIGURATION&nbsp;·&nbspJUNIOR CYBERSECURITY ANALYST PATH</span>' +
+    '<span class="meta-date">' + PROJECT.date + ' by ' + PROJECT.author + '</span>' +
+  '</div>' +
+  '<h1 class="proj-title">' + PROJECT.title + '</h1>' +
+  '<p class="proj-overview">' + PROJECT.overview + '</p>' +
+  ((gh || pfl) ? '<div class="proj-actions">' + gh + pfl + '</div>' : '');
+
+var ol = document.getElementById('obj-list');
+PROJECT.objectives.forEach(function(o, i) {
+  ol.innerHTML += '<div class="obj-item"><span class="obj-num">' + String(i+1).padStart(2,'0') + '.</span><span>' + o + '</span></div>';
+});
+
+var tb = document.getElementById('tools-body');
+PROJECT.tools.forEach(function(t) {
+  tb.innerHTML += '<tr><td class="tool-name">' + t.name + '</td><td>' + t.purpose + '</td></tr>';
+});
+
+var tw = document.getElementById('tags-wrap');
+PROJECT.skills.forEach(function(s) {
+  tw.innerHTML += '<span class="tag">' + s + '</span>';
+});
+
+var stl = document.getElementById('steps-list');
+PROJECT.steps.forEach(function(s, i) {
+  var cb = s.code ? '<pre class="step-code">' + s.code + '</pre>' : '';
+  stl.innerHTML +=
+    '<div class="step">' +
+      '<div class="step-header">' +
+        '<span class="step-n">STEP ' + String(i+1).padStart(2,'0') + '</span>' +
+        '<span class="step-title">' + s.title + '</span>' +
+      '</div>' +
+      '<div class="step-body"><div class="step-desc">' + s.desc + '</div>' + cb + '</div>' +
+    '</div>';
+});
+
+var rl = document.getElementById('results-list');
+PROJECT.results.forEach(function(r) {
+  rl.innerHTML += '<div class="result ' + r.type + '"><span class="ri">' + (ri[r.type] || '.') + '</span><span>' + r.text + '</span></div>';
+});
+
+var ll = document.getElementById('lessons-list');
+PROJECT.lessons.forEach(function(l, i) {
+  ll.innerHTML +=
+    '<div class="lesson">' +
+      '<div class="lesson-n">LESSON ' + String(i+1).padStart(2,'0') + '</div>' +
+      '<div class="lesson-title">' + l.title + '</div>' +
+      '<div class="lesson-text">' + l.text + '</div>' +
+    '</div>';
+});
+
+var lnk = PROJECT.authorLinkedIn
+  ? '<a href="' + PROJECT.authorLinkedIn + '" style="color:var(--green-d);text-decoration:none">' + PROJECT.author + '</a>'
+  : PROJECT.author;
+document.getElementById('footer').innerHTML =
+  '<p>' + lnk + ' &nbsp;.&nbsp; NETWORKING PROJECT &nbsp;.&nbsp; CISCO NETWORKING DEVICES AND INITIAL CONFIGURATION &nbsp;.&nbsp; <span style="color:var(--green)">LIVE</span></p>';
+</script>
+</body>
+</html>

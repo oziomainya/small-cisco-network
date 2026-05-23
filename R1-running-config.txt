@@ -1,0 +1,90 @@
+Building configuration...
+
+Current configuration : 911 bytes
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+service password-encryption
+!
+hostname R1
+!
+!
+!
+enable secret 5 $1$mERr$Pq3/lr0agnISq0fxb9TUZ0
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+!
+license udi pid CISCO1941/K9 sn FTX1524L18C-
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ description Link to SW1 - LAN interface
+ ip address 192.168.1.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+!
+ip flow-export version 9
+!
+!
+!
+banner motd ^C Authorized Access Only. Disconnect immediately f not authorized ^C
+!
+!
+!
+!
+line con 0
+ password 7 080243401A16091243595F45
+ login
+!
+line aux 0
+!
+line vty 0 4
+ password 7 08375857584B5656
+ login
+line vty 5 15
+ password 7 08375857584B5656
+ login
+!
+!
+!
+end
