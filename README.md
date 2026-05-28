@@ -1,9 +1,13 @@
 # Small Cisco Network: Full Initial Configuration
 
 > **Category:** Networking
+> 
 > **Status:** Live
+> 
 > **Course:** Cisco Networking Devices and Initial Configuration · Junior Cybersecurity Analyst Career Path
+> 
 > **Author:** Ozioma Inya         <!-- REPLACE with your name -->
+> 
 > **Date:** August, 2025              <!-- REPLACE with completion date e.g. "May, 2025" -->
 
 ---
