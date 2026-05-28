@@ -195,21 +195,25 @@ enable secret 5 $1$mERr$9cTjUIlmO7RHSbPQZObB./
 ## Lessons Learned
 
 **1. Device hardening is the first task, not an afterthought**
+
 On a real network, an unconfigured device is an open door. Setting the enable
 secret, securing console and VTY lines, encrypting passwords, and adding a MOTD
 banner are the baseline before anything else is configured.
 
 **2. The switch needs a default gateway too**
+
 Without a default gateway, the switch can only be managed from within its own
 subnet. This became clear when trying to reach the switch from a different
 network segment during extended testing.
 
 **3. no shutdown is required for VLAN interfaces too**
+
 Just like physical router interfaces, VLAN interfaces on a switch are
 administratively down by default. The management IP is configured but
 completely unreachable without it.
 
 **4. show commands are part of the configuration process**
+
 Using show running-config, show ip interface brief after each step made
 it possible to catch mistakes immediately rather than only at the end.
 
